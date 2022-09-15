@@ -6,62 +6,61 @@ import urllib3
 import requests
 import ast
 
-def network_filter(urls, associative,driver):
-    fl = 0
-    ret_dict = {}
+def integrated_filter(urls,elms,associative,driver):
+    urllib3.disable_warnings(InsecureRequestWarning)
+    fl_network = 0
+    fl_extend = 0
+    ret_network_dict = {}
+    ret_extend_dict = {}
     for i in range(1,len(associative)+1):
-        driver.get(associative[i])
-        fl = 0
+        try:
+            driver.get(associative[i])
+        except Exception:
+            ret_extend_dict[i] = fl_extend
+            ret_network_dict[i] = fl_network
+            break
+
+        fl_network = 0
+        fl_extend = 0
         # Access requests via the `requests` attribute
         for request in driver.requests:
-            for url in urls:
-                if url in request.url:
-                    fl = 1
-                    break
-            else:
-                continue
-    
-        ret_dict[i] = fl
-        continue
-    
-    return ret_dict
-
-def extended_filter(elms,associative,driver):
-    urllib3.disable_warnings(InsecureRequestWarning)
-    fl = 0
-    ret_dict = {}
-
-    for i in range(1,len(associative) + 1):
-        driver.get(associative[i])
-        fl = 0
-        for request in driver.requests:
-            try:
-                content_type = request.response.headers['Content-Type']
-                if ("text/html" in content_type) or ("text/javascript" in content_type):
-                    body = requests.get(request.url, verify=False).text
-                    for elm in elms:
-                        if elm in body:
-                            print(elm)
-                            fl = 1
-                            break
-                    else:
-                        continue
-                
-                if fl == 1:
-                    break
-            except Exception:
-                continue
-        
-        ret_dict[i] = fl
-        continue
+            #network filter
+            if fl_network == 0:
+                for url in urls:
+                    if url in request.url:
+                        fl_network = 1
+                        break
             
-    return ret_dict
+            #extend filter
+            if fl_extend == 0:
+                try:
+                    content_type = request.response.headers['Content-Type']
+                    if ("text/html" in content_type) or ("text/javascript" in content_type):
+                        body = requests.get(request.url, verify=False).text
+                        for elm in elms:
+                            if elm in body:
+                                print(elm)
+                                fl_extend = 1
+                                break
+                        else:
+                            continue
+                    if fl_extend == 1:
+                        break
+                except Exception:
+                    continue
+                
+        ret_extend_dict[i] = fl_extend
+        ret_network_dict[i] = fl_network
+        del driver.requests
+    
+    return ret_extend_dict, ret_network_dict
 
 def filter():
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--disable-gpu')
     options.add_argument('--disable-extensions')
+    #options.page_load_strategy = 'eager'
     # Create a new instance of the firefox driver
     driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), options=options)
 
@@ -75,8 +74,7 @@ def filter():
         # str to dict
         associative = ast.literal_eval(f.read())
     
-    dict_extend = extended_filter(elms_extend,associative,driver)
-    dict_network = network_filter(elms_network,associative,driver)
+    dict_extend, dict_network = integrated_filter(elms_network, elms_extend, associative, driver)
     return dict_extend, dict_network
 
 def make_dict(dict_extend, dict_network):

@@ -1,1 +1,1 @@
-{1: "https://www.google.com/?hl=ja", 2: "https://www.youtube.com/", 3: "https://www.out.ac.no"}
+{1: "http://abehiroshi.la.coocan.jp/", 2: "https://www.oit.ac.jp/", 3: "https://pypi.org/project/selenium-wire/"}
