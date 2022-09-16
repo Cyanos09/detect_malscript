@@ -13,17 +13,19 @@ def integrated_filter(urls,elms,associative,driver):
     ret_network_dict = {}
     ret_extend_dict = {}
     for i in range(1,len(associative)+1):
+        fl_network = 0
+        fl_extend = 0
+
         try:
             driver.get(associative[i])
         except Exception:
             ret_extend_dict[i] = fl_extend
             ret_network_dict[i] = fl_network
-            break
+            continue
 
-        fl_network = 0
-        fl_extend = 0
         # Access requests via the `requests` attribute
         for request in driver.requests:
+            #print(request.url)
             #network filter
             if fl_network == 0:
                 for url in urls:
@@ -35,7 +37,7 @@ def integrated_filter(urls,elms,associative,driver):
             if fl_extend == 0:
                 try:
                     content_type = request.response.headers['Content-Type']
-                    if ("text/html" in content_type) or ("text/javascript" in content_type):
+                    if ("html" in content_type) or ("javascript" in content_type):
                         body = requests.get(request.url, verify=False).text
                         for elm in elms:
                             if elm in body:
@@ -82,7 +84,7 @@ def make_dict(dict_extend, dict_network):
     ret_dict = {}
     length = len(dict_extend)
     for i in range(1,length+1):
-        ret_dict[i] = {"network": dict_extend[i], "extend": dict_network[i]}
+        ret_dict[i] = {"network": dict_network[i], "extend": dict_extend[i]}
     return ret_dict
 
 if __name__ == '__main__':

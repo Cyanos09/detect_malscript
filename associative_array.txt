@@ -1,1 +1,1 @@
-{1: "http://abehiroshi.la.coocan.jp/", 2: "https://www.oit.ac.jp/", 3: "https://pypi.org/project/selenium-wire/"}
+{1: "http://abehiroshi.la.coocan.jp/", 2: "https://coinhive.com/lib/coinhive.min.js", 3: "https://github.com/sitexw/FuckAdBlock/blob/master/fuckadblock.js"}
