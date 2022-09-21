@@ -5,6 +5,7 @@ from urllib3.exceptions import InsecureRequestWarning
 import urllib3
 import requests
 import ast
+import json
 
 def integrated_filter(urls,elms,associative,driver):
     urllib3.disable_warnings(InsecureRequestWarning)
@@ -13,6 +14,8 @@ def integrated_filter(urls,elms,associative,driver):
     ret_network_dict = {}
     ret_extend_dict = {}
     for i in range(1,len(associative)+1):
+        print(i)
+        print(associative[i])
         fl_network = 0
         fl_extend = 0
 
@@ -25,23 +28,20 @@ def integrated_filter(urls,elms,associative,driver):
 
         # Access requests via the `requests` attribute
         for request in driver.requests:
-            #print(request.url)
             #network filter
             if fl_network == 0:
                 for url in urls:
                     if url in request.url:
                         fl_network = 1
                         break
-            
             #extend filter
             if fl_extend == 0:
                 try:
                     content_type = request.response.headers['Content-Type']
                     if ("html" in content_type) or ("javascript" in content_type):
-                        body = requests.get(request.url, verify=False).text
+                        body = requests.get(request.url, verify=False, timeout=30.0).text
                         for elm in elms:
                             if elm in body:
-                                print(elm)
                                 fl_extend = 1
                                 break
                         else:
@@ -66,13 +66,13 @@ def filter():
     # Create a new instance of the firefox driver
     driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), options=options)
 
-    with open("filter_extend.txt","rt") as f:
+    with open("filter_extend_2.txt","rt") as f:
         elms_extend = f.read().splitlines()
     
-    with open("filter_network.txt", "rt") as f:
+    with open("filter_network_2.txt", "rt") as f:
         elms_network = f.read().splitlines()
 
-    with open("associative_array.txt","rt") as f:
+    with open("associative_array2.txt","rt") as f:
         # str to dict
         associative = ast.literal_eval(f.read())
     
@@ -90,4 +90,6 @@ def make_dict(dict_extend, dict_network):
 if __name__ == '__main__':
     dict_extend, dict_network = filter()
     final_dict = make_dict(dict_extend, dict_network)
-    print(final_dict)
+
+    with open("akusei_output_2.json","wt") as f:
+        f.write(json.dumps(final_dict))
